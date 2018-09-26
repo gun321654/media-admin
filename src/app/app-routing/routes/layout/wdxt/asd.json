@@ -1,0 +1,66 @@
+{
+    "msg": "success",
+    "result": {
+        "recordId": 84,
+        "recordTitle": "王霞发布记者在线调查",
+        "recordAbstracts": "王霞发布记者在线调查王霞发布记者在线调查",
+        "recordContent": "王霞发布记者在线调查",
+        "recordKeys": "王霞发布记者在线调查",
+        "recordDominatingfigure": "王霞发布记者在线调查",
+        "recordOccurtime": 1536768000000,
+        "recordChannelid": 1,
+        "recordPlaytime": 1536827309000,
+        "recordImportance": 1,
+        "recordIsinterview": 0,
+        "recordAddress": "上海是闵行区",
+        "recordType": 3,
+        "recordLink": "王霞发布记者在线调查",
+        "recordOpen": 1,
+        "recordMuser": 11,
+        "muser": {
+            "userId": 11,
+            "username": "zsq",
+            "name": "张苏琴1",
+            "portraituri": null
+        },
+        "recordCuser": 14,
+        "cuser": {
+            "userId": 11,
+            "username": "zsq",
+            "name": "张苏琴1",
+            "portraituri": null
+        },
+        "recordStatus": 1,
+        "recordCtime": 1536827559000,
+        "recordUtime": null,
+        "recordPreassignment": 1,
+        "assignUsers": [
+            {
+                "userId": 6,
+                "username": "lsr",
+                "name": "刘松仁",
+                "portraituri": "/resources/portrait/6/efa49b61-7ba1-46e2-a023-54e242d361a320180913105328.png"
+            },
+            {
+                "userId": 7,
+                "username": "njb",
+                "name": "牛静斌",
+                "portraituri": null
+            },
+            {
+                "userId": 11,
+                "username": "zsq",
+                "name": "张苏琴1",
+                "portraituri": null
+            },
+            {
+                "userId": 14,
+                "username": "wx",
+                "name": "王霞",
+                "portraituri": null
+            }
+        ],
+        "resources": []
+    },
+    "code": 0
+}

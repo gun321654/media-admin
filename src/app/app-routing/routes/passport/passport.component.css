@@ -1,0 +1,43 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    background: #f0f2f5;
+}
+
+.wrap {
+    padding: 32px 0;
+    flex: 1;
+}
+.top {
+    text-align: center;
+}
+
+.header {
+    height: 44px;
+    line-height: 44px;
+}
+
+.header a {
+    text-decoration: none;
+}
+
+.logo {
+    height: 44px;
+    margin-right: 16px;
+}
+
+.title {
+    font-size: 33px;
+
+    font-family: 'Myriad Pro', 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    font-weight: 600;
+    position: relative;
+    vertical-align: middle;
+}
+
+.desc {
+
+    margin-top: 12px;
+    margin-bottom: 40px;
+}

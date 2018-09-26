@@ -1,0 +1,55 @@
+.operate {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+.search {
+    margin-bottom: 20px;
+}
+
+.add {
+    margin-right: 20px;
+}
+
+.right {
+    float: right;
+}
+
+.hidden {
+    visibility: hidden;
+    width: .1px;
+    height: .1px;
+}
+
+.filelist {
+    margin-bottom: 20px;
+}
+
+.addinput {
+    margin-bottom: 20px;
+}
+
+.close {
+    float: right;
+}
+
+.itemtab {
+    width: 62px;
+    max-height: 21px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.item {
+    width: 62px;
+    max-height: 42px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.detail {
+    width: 1000px;
+    height: 550px;
+    overflow: screen;
+}
