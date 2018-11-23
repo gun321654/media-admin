@@ -9,11 +9,16 @@ import { xtylComponent } from './routes/layout/xtyl/xtyl.component';
 import { wdxtComponent } from './routes/layout/wdxt/wdxt.component';
 import { dsxtComponent } from './routes/layout/dsxt/dsxt.component';
 import { RwylComponent } from './routes/layout/rwyl/rwyl.component';
+import { RwrlComponent } from './routes/layout/rwrl/rwrl.component';
 import { WdrwComponent } from './routes/layout/wdrw/wdrw.component';
 import { AlltaskComponent } from './routes/layout/alltask/alltask.component';
 import { WcjdComponent } from './routes/layout/wcjd/wcjd.component';
 import { DqrrwComponent } from './routes/layout/dqrrw/dqrrw.component';
 import { YwjrwComponent } from './routes/layout/ywjrw/ywjrw.component';
+import { zprwComponent } from './routes/layout/zprw/zprw.component';
+import { xjxtComponent } from './routes/layout/xjxt/xjxt.component';
+import { VersionComponent } from './routes/layout/version/version.component';
+
 
 
 
@@ -25,12 +30,29 @@ import { AuthService } from './auth.service'
 import { SharedModule } from './../shared/shared.module'
 
 
-
+// RwrlComponent
 const routes: Routes = [
   {
     path: '',
     canActivate: [AuthService],
     component: LayoutComponent, children: [
+
+      {
+        path: 'version',
+        component: VersionComponent,
+      },
+      {
+        path: 'rwrl',
+        component: RwrlComponent,
+      },
+      {
+        path: 'xjxt',
+        component: xjxtComponent,
+      },
+      {
+        path: 'zprw',
+        component: zprwComponent,
+      },
       {
         path: 'xtyl',
         component: xtylComponent,
@@ -80,6 +102,22 @@ const routes: Routes = [
     path: 'insert',
     canActivate: [AuthService],
     component: InsertComponent, children: [
+      {
+        path: 'version',
+        component: VersionComponent,
+      },
+      {
+        path: 'rwrl',
+        component: RwrlComponent,
+      },
+      {
+        path: 'xjxt',
+        component: xjxtComponent,
+      },
+      {
+        path: 'zprw',
+        component: zprwComponent,
+      },
       {
         path: 'xtyl',
         component: xtylComponent,

@@ -65,7 +65,7 @@ export class AlltaskComponent implements OnInit {
   }
 
   getTaskfinish(data) {
-    this.CfService.getTaskfinish(data.taskId).subscribe(json => {
+    this.CfService.getTaskfinish(data.taskId,"").subscribe(json => {
       if (json.code === 0) {
         data.status = 2;
         this.message.info(json.msg);

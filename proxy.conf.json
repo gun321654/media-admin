@@ -1,6 +1,6 @@
 {
-    "/qczl": {
-        "target": "http://192.168.2.18:81",
+    "/razuna": {
+        "target": "http://192.168.2.14:8082",
         "secure": false
     }
 }

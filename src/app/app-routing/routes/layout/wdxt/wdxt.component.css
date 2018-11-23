@@ -34,15 +34,16 @@
 }
 
 .itemtab {
-    width: 62px;
+    width: 72px;
     max-height: 21px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
 }
 
+
 .item {
-    width: 62px;
+    width: 72px;
     max-height: 42px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -52,4 +53,67 @@
     width: 1000px;
     height: 550px;
     overflow: screen;
+}
+
+
+.floor {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.floorbox {
+    margin-bottom: 15px;
+}
+
+.fileInput {
+    display: none;
+}
+
+.mleft {
+    margin-left: 10px;
+}
+
+.loading {
+    min-height: 30px;
+    width: 100%;
+    text-align: center;
+}
+
+.loadingbtn {
+    width: 100%;
+}
+.img {
+    width: 100%;
+    height: 130px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.img img {
+    width: 100%;
+    height: 100%;
+}
+
+.marr {
+    margin: 10px 0;
+}
+
+.file {
+    width: 58.66px;
+    height: 64.73px;
+    display: block;
+    margin: 0 auto;
+}
+
+.filename {
+    height: 42px;
+    width: 100%;
+    overflow: hidden;
+    text-align: center;
+}
+.auto {
+    margin: 0 auto;
+    display: block;
+    width: 100%;
 }

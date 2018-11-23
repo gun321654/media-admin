@@ -14,18 +14,34 @@ import { Observable, of, throwError } from 'rxjs';
 import { mergeMap, catchError } from 'rxjs/operators';
 import { NzMessageService } from 'ng-zorro-antd';
 
+
+
 @Injectable()
 export class TokenInterceptor implements HttpInterceptor {
     constructor(public TokenService: TokenService, private injector: Injector) {
         console.log("TokenService", TokenService.getToken())
     }
     intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-        const token = this.TokenService.getToken();
-        if (token) {
+        // console.log("window['serverUrl']", window['serverUrl']);
+        let url = request.url;
+        if (!url.startsWith('https://') && !url.startsWith('http://')) {
+            url = window['serverUrl'] + url;
+            const token = this.TokenService.getToken();
+            if (token) {
+                request = request.clone({
+                    url: url,
+                    setHeaders: {
+                        token: this.TokenService.getToken()
+                    }
+                });
+            } else {
+                request = request.clone({
+                    url: url,
+                });
+            }
+        } else {
             request = request.clone({
-                setHeaders: {
-                    token: this.TokenService.getToken()
-                }
+                url: url,
             });
         }
         return next.handle(request).pipe(
@@ -77,7 +93,8 @@ export class TokenInterceptor implements HttpInterceptor {
                 // }
                 break;
             case 401: // 未登录状态码
-                this.goTo('/passport/login');
+                // this.goTo('/passport/login');
+                parent.window.location.href = window["loginPage"];
                 break;
             case 403:
             case 404:

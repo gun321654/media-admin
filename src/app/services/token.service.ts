@@ -13,6 +13,8 @@ export class TokenService {
     // var millisecond = new Date().getTime();
     // var expiresTime = new Date(millisecond + expires);
     this.CookieService.put("token", token, { expires: expires.toString() });
+
+
   }
   removeToken() {
     this.CookieService.removeAll();

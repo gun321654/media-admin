@@ -12,15 +12,19 @@ import { LoginComponent } from './../app-routing/routes/passport/login/login.com
 import { LayoutComponent } from './../app-routing/routes/layout/layout.component';
 import { InsertComponent } from './../app-routing/routes/insert/insert.component';
 import { xtylComponent } from '../app-routing/routes/layout/xtyl/xtyl.component';
+import { zprwComponent } from '../app-routing/routes/layout/zprw/zprw.component';
 import { wdxtComponent } from '../app-routing/routes/layout/wdxt/wdxt.component';
+import { xjxtComponent } from '../app-routing/routes/layout/xjxt/xjxt.component';
 import { dsxtComponent } from '../app-routing/routes/layout/dsxt/dsxt.component';
 import { WdrwComponent } from '../app-routing/routes/layout/wdrw/wdrw.component';
 import { RwylComponent } from '../app-routing/routes/layout/rwyl/rwyl.component';
+import { RwrlComponent } from '../app-routing/routes/layout/rwrl/rwrl.component';
 import { AlltaskComponent } from '../app-routing/routes/layout/alltask/alltask.component';
 import { WcjdComponent } from '../app-routing/routes/layout/wcjd/wcjd.component';
 import { DqrrwComponent } from '../app-routing/routes/layout/dqrrw/dqrrw.component';
 
 import { YwjrwComponent } from '../app-routing/routes/layout/ywjrw/ywjrw.component';
+import { VersionComponent } from '../app-routing/routes/layout/version/version.component';
 
 
 
@@ -61,6 +65,10 @@ import { TaskStatecolorPipe } from './taskStatecolor.pipe';
         }
     ],
     declarations: [
+        VersionComponent,
+        RwrlComponent,
+        xjxtComponent,
+        zprwComponent,
         YwjrwComponent,
         DqrrwComponent,
         WcjdComponent,

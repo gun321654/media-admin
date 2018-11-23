@@ -1,0 +1,790 @@
+<nz-input-group nzCompact class="search">
+  <input placeholder="标题、关键字、内容搜索" type="text" nz-input [(ngModel)]="searchText" style="width:200px">
+  <nz-select style="width: 120px" [(ngModel)]="searchChannelid" nzAllowClear nzPlaceHolder="请选择">
+    <nz-option *ngFor="let data of channel" [nzValue]="data.channelId" [nzLabel]="data.channelName"></nz-option>
+  </nz-select>
+  <nz-range-picker [(ngModel)]="searchTime" nzShowTime></nz-range-picker>
+  <button (click)="getData(true)" nz-button nzType="primary"><i class="anticon anticon-search"></i></button>
+</nz-input-group>
+<div class="operate">
+  <!-- <button (click)="add()" nz-button nzType="primary" class="add">添加选题</button> -->
+
+  <nz-input-group nzCompact>
+    <button (click)="del()" [disabled]="disabledButton" nz-button nzType="primary">删除选题</button>
+    <!-- <button (click)="examine()" [disabled]="disabledButton" nz-button nzType="primary">提交审核</button> -->
+    <button nz-button nzType="primary" disabled>已选中{{checkedNumber}}条</button>
+  </nz-input-group>
+
+
+
+</div>
+
+<ng-template #xtupload>
+  <div *ngIf="!taskId; else elseBlock">
+    请先指派任务，再上传素材
+  </div>
+  <ng-template #elseBlock>
+    <div>
+      <div nz-row nzType="flex" nzJustify="start">
+        <div *ngFor="let item of needFile" nz-col [nzSpan]="8" class="card">
+          <nz-card>
+            <div [title]="item.filename" class="img">
+              <img [src]="fileType(item)" alt="">
+            </div>
+            <nz-card-meta [nzTitle]="item.filename"></nz-card-meta>
+          </nz-card>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="!recordId" class="marr">
+      <button class="blank" [disabled]="needFile.length===0" nz-button nzType="primary" (click)="getTaskBind()">提交</button>
+      <button nz-button (click)="mzkOpen()" class="mleft">从媒资库选取</button>
+    </div>
+    <ng-container *ngTemplateOutlet="r"></ng-container>
+
+
+
+
+  </ng-template>
+
+</ng-template>
+<ng-template #r>
+
+  <div class="loading" nz-row nzType="flex" nzJustify="start">
+    <nz-spin class="loadingbtn" [nzSpinning]="mzkLoading"> </nz-spin>
+    <div *ngFor="let item of imgs" nz-col [nzSpan]="8" class="card">
+      <nz-card>
+        <div class="img">
+          <img [src]="fileType(item)" alt="">
+        </div>
+        <nz-card-meta [nzTitle]="item.filename"></nz-card-meta>
+      </nz-card>
+    </div>
+  </div>
+</ng-template>
+
+
+<ng-template #xtform>
+  <form nz-form [formGroup]="form" class="login-form" (ngSubmit)="submitForm()">
+    <div nz-row [nzGutter]="24">
+      <div nz-col [nzSpan]="15">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="3" nzRequired>标题</nz-form-label>
+          <nz-form-control [nzSpan]="20">
+            <input style="width: 100%" type="text" nz-input formControlName="title" placeholder="请填写选题标题">
+            <nz-form-explain *ngIf="form.get('title').dirty && form.get('title').errors">请填写选题标题
+            </nz-form-explain>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col [nzSpan]="9">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6" nzRequired>发生日期</nz-form-label>
+          <nz-form-control [nzSpan]="12">
+            <nz-date-picker formControlName="occurTime"></nz-date-picker>
+            <nz-form-explain *ngIf="form.get('occurTime').dirty && form.get('occurTime').errors">请选择发生日期
+            </nz-form-explain>
+          </nz-form-control>
+        </nz-form-item>
+
+
+      </div>
+
+
+
+
+      <div nz-col [nzSpan]="23">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="2" nzRequired>内容</nz-form-label>
+          <nz-form-control [nzSpan]="21">
+            <textarea formControlName="content" nz-input placeholder="请填写内容" [nzAutosize]="{ minRows: 2, maxRows: 6 }"></textarea>
+            <nz-form-explain *ngIf="form.get('content').dirty && form.get('content').errors">请填写内容
+            </nz-form-explain>
+          </nz-form-control>
+        </nz-form-item>
+
+      </div>
+      <div nz-col [nzSpan]="8">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6" nzRequired>审核员</nz-form-label>
+          <nz-form-control [nzSpan]="12">
+
+            <nz-select style="width: 120px" formControlName="mUser" nzAllowClear nzPlaceHolder="请选择">
+              <nz-option *ngFor="let data of userall " [nzValue]="data.value" [nzLabel]="data.label"></nz-option>
+            </nz-select>
+
+            <nz-form-explain *ngIf="form.get('mUser').dirty && form.get('mUser').errors">请选择审核员
+            </nz-form-explain>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+
+      <div nz-col [nzSpan]="16">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="3">摘要</nz-form-label>
+          <nz-form-control [nzSpan]="18"><input type="text" nz-input formControlName="abstracts" placeholder="请填写摘要"><nz-form-explain
+              *ngIf="form.get('abstracts').dirty && form.get('abstracts').errors">请填写摘要
+            </nz-form-explain>
+          </nz-form-control>
+        </nz-form-item>
+
+      </div>
+
+      <div nz-col [nzSpan]="8">
+
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6">关键词</nz-form-label>
+          <nz-form-control [nzSpan]="12">
+
+            <input type="text" nz-input formControlName="keys" placeholder="请填写关键词">
+
+            <nz-form-explain *ngIf="form.get('keys').dirty && form.get('keys').errors">请填写关键词
+            </nz-form-explain>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div nz-col [nzSpan]="8">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6"> 主要人物</nz-form-label>
+          <nz-form-control [nzSpan]="12">
+
+            <input type="text" nz-input formControlName="dominatingFigure" placeholder="请填写主要人物">
+
+            <nz-form-explain *ngIf="form.get('dominatingFigure').dirty && form.get('dominatingFigure').errors">请填写主要人物
+            </nz-form-explain>
+          </nz-form-control>
+        </nz-form-item>
+
+      </div>
+
+
+      <div nz-col [nzSpan]="8">
+        <nz-form-item>
+
+          <nz-form-label [nzSpan]="6">拟播栏目</nz-form-label>
+          <nz-form-control [nzSpan]="12">
+            <nz-select style="width: 120px" formControlName="channelId" nzAllowClear nzPlaceHolder="请选择">
+              <nz-option *ngFor="let data of channel" [nzValue]="data.channelId" [nzLabel]="data.channelName"></nz-option>
+            </nz-select>
+            <nz-form-explain *ngIf="form.get('channelId').dirty && form.get('channelId').errors">请选择拟播栏目
+            </nz-form-explain>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div nz-col [nzSpan]="8">
+
+        <nz-form-item>
+
+          <nz-form-label [nzSpan]="6">拟播时间</nz-form-label>
+          <nz-form-control [nzSpan]="12">
+            <nz-date-picker nzShowTime formControlName="playTime"></nz-date-picker>
+            <nz-form-explain *ngIf="form.get('playTime').dirty && form.get('playTime').errors">请选择拟播时间
+            </nz-form-explain>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div nz-col [nzSpan]="8">
+
+        <nz-form-item>
+
+          <nz-form-label [nzSpan]="6"> 重要程度</nz-form-label>
+          <nz-form-control [nzSpan]="12">
+            <nz-select formControlName="importance" nzAllowClear nzPlaceHolder="请选择">
+              <nz-option nzValue="1" nzLabel="普通"></nz-option>
+              <nz-option nzValue="2" nzLabel="重要"></nz-option>
+            </nz-select>
+            <nz-form-explain *ngIf="form.get('importance').dirty && form.get('importance').errors">请选择重要程度
+            </nz-form-explain>
+          </nz-form-control>
+        </nz-form-item>
+
+      </div>
+
+      <div nz-col [nzSpan]="8">
+        <nz-form-item>
+
+          <nz-form-label [nzSpan]="6">发生地点</nz-form-label>
+          <nz-form-control [nzSpan]="12">
+
+            <input type="text" nz-input formControlName="address" placeholder="请填写发生地点">
+
+            <nz-form-explain *ngIf="form.get('address').dirty && form.get('address').errors">请填写发生地点
+            </nz-form-explain>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div nz-col [nzSpan]="8">
+        <nz-form-item>
+
+          <nz-form-label [nzSpan]="6">选题类型</nz-form-label>
+          <nz-form-control [nzSpan]="12">
+
+            <nz-select style="width: 120px" formControlName="typeId" nzAllowClear nzPlaceHolder="请选择">
+              <nz-option *ngFor="let data of typeall" [nzValue]="data.typeId" [nzLabel]="data.typeName"></nz-option>
+            </nz-select>
+
+            <nz-form-explain *ngIf="form.get('typeId').dirty && form.get('typeId').errors">请选择选题类型
+            </nz-form-explain>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <!-- <div nz-col [nzSpan]="8">
+
+        <nz-form-item>
+
+          <nz-form-label [nzSpan]="6">预指派</nz-form-label>
+          <nz-form-control [nzSpan]="12">
+
+            <nz-select formControlName="preAssignment" nzAllowClear nzPlaceHolder="请选择">
+              <nz-option nzValue="1" nzLabel="互联网"></nz-option>
+              <nz-option nzValue="2" nzLabel="文稿任务"></nz-option>
+              <nz-option nzValue="3" nzLabel="采访任务"></nz-option>
+            </nz-select>
+
+            <nz-form-explain *ngIf="form.get('preAssignment').dirty && form.get('preAssignment').errors">请选择预指派
+            </nz-form-explain>
+          </nz-form-control>
+        </nz-form-item>
+      </div> -->
+      <div nz-col [nzSpan]="8">
+        <nz-form-item>
+
+          <nz-form-label [nzSpan]="6">外链</nz-form-label>
+          <nz-form-control [nzSpan]="12">
+
+            <input type="text" nz-input formControlName="link" placeholder="请填写外链">
+
+            <nz-form-explain *ngIf="form.get('link').dirty && form.get('link').errors">请填写外链
+            </nz-form-explain>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col [nzSpan]="24">
+        <nz-form-item>
+
+          <nz-form-label [nzSpan]="2">执行人</nz-form-label>
+          <nz-form-control [nzSpan]="22">
+            <nz-checkbox-group formControlName="assignor"></nz-checkbox-group>
+            <nz-form-explain *ngIf="form.get('assignor').dirty && form.get('assignor').errors">请选择执行人
+            </nz-form-explain>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col [nzSpan]="8">
+        <nz-form-item>
+
+          <nz-form-label [nzSpan]="6">是否公开</nz-form-label>
+          <nz-form-control [nzSpan]="12">
+            <label nz-checkbox formControlName="open">
+            </label>
+            <nz-form-explain *ngIf="form.get('open').dirty && form.get('open').errors"></nz-form-explain>
+          </nz-form-control>
+        </nz-form-item>
+
+      </div>
+      <!-- <div nz-col [nzSpan]="8">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6">是否采访</nz-form-label>
+          <nz-form-control [nzSpan]="12">
+            <label nz-checkbox formControlName="isInterview"></label>
+            <nz-form-explain *ngIf="form.get('isInterview').dirty && form.get('isInterview').errors"></nz-form-explain>
+          </nz-form-control>
+        </nz-form-item>
+      </div> -->
+      <div nz-col [nzSpan]="8">
+        <nz-form-item>
+          <button [nzLoading]="btnloading" [disabled]="addbtn" nz-button type="submit" nzType="primary">保存</button>
+        </nz-form-item>
+      </div>
+    </div>
+  </form>
+
+
+</ng-template>
+
+
+<ng-template #tplContent>
+  <textarea [(ngModel)]="examineText" nz-input placeholder="请输入..." [nzAutosize]="{ minRows: 2, maxRows: 6 }"></textarea>
+</ng-template>
+
+
+<ng-template #taskFooter>
+  <button nz-button nzType="primary" (click)="taskClose()">关闭</button>
+  <!-- <button nz-button nzType="primary" (click)="resetForm()">重置</button> -->
+</ng-template>
+
+<nz-modal [nzFooter]="taskFooter" nzWidth="950" [nzStyle]="{ top: '20px',right:'20px' }" [(nzVisible)]="taskVisible" nzTitle="指派任务"
+  (nzOnCancel)="taskClose()">
+  <nz-tabset [(nzSelectedIndex)]="tabIndex">
+    <nz-tab nzTitle="指派任务">
+      <form nz-form [formGroup]="taskForm" class="login-form">
+        <div nz-row [nzGutter]="24">
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="7" nzRequired>任务标题</nz-form-label>
+              <nz-form-control [nzSpan]="12">
+                <input type="text" nz-input formControlName="title" placeholder="任务标题">
+                <nz-form-explain *ngIf="taskForm.get('title').dirty && taskForm.get('title').errors">请填写任务标题
+                </nz-form-explain>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="7" nzRequired>任务地点</nz-form-label>
+              <nz-form-control [nzSpan]="12">
+                <input type="text" nz-input formControlName="address" placeholder="任务地点">
+                <nz-form-explain *ngIf="taskForm.get('address').dirty && taskForm.get('address').errors">请填写任务地点
+                </nz-form-explain>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="7" nzRequired>开始时间</nz-form-label>
+              <nz-form-control [nzSpan]="12">
+                <nz-date-picker nzShowTime formControlName="starttime"></nz-date-picker>
+                <nz-form-explain *ngIf="taskForm.get('starttime').dirty && taskForm.get('starttime').errors">请选择开始时间
+                </nz-form-explain>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="7" nzRequired>结束时间</nz-form-label>
+              <nz-form-control [nzSpan]="12">
+                <nz-date-picker nzShowTime formControlName="endtime"></nz-date-picker>
+                <nz-form-explain *ngIf="taskForm.get('endtime').dirty && taskForm.get('endtime').errors">请选择结束时间
+                </nz-form-explain>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="7" nzRequired>任务内容</nz-form-label>
+              <nz-form-control [nzSpan]="12">
+                <input type="text" nz-input formControlName="content" placeholder="任务内容">
+                <nz-form-explain *ngIf="taskForm.get('content').dirty && taskForm.get('content').errors">请填写任务内容
+                </nz-form-explain>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="7" nzRequired>栏目</nz-form-label>
+              <nz-form-control [nzSpan]="12">
+                <nz-select style="width: 120px" formControlName="channelId" nzAllowClear nzPlaceHolder="请选择">
+                  <nz-option *ngFor="let data of channel" [nzValue]="data.channelId" [nzLabel]="data.channelName"></nz-option>
+                </nz-select>
+                <nz-form-explain *ngIf="taskForm.get('channelId').dirty && taskForm.get('channelId').errors">请选择栏目
+                </nz-form-explain>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="7">是否公开</nz-form-label>
+              <nz-form-control [nzSpan]="12">
+                <label nz-checkbox formControlName="open">
+                </label>
+                <nz-form-explain *ngIf="taskForm.get('open').dirty && taskForm.get('open').errors">请选择是否公开
+                </nz-form-explain>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+
+          <!-- <div nz-col [nzSpan]="12">
+            <div nz-row>
+              <nz-form-label [nzSpan]="7">上传文件</nz-form-label>
+              <div nz-col nzSpan="12">
+                <input #taskfile class="hidden" multiple="multiple" type="file" (change)="taskFileChange($event)">
+                <button class="addinput" (click)="addTaskChange()" nz-button nzType="default">
+                  点击添加文件
+                </button>
+                <div class="filelist">
+                  <nz-tag *ngFor="let item of taskFile" [nzColor]="'magenta'" nzMode="closeable" (nzOnClose)="closeTaskfile(item)">{{item.name}}</nz-tag>
+                </div>
+
+              </div>
+
+            </div>
+          </div> -->
+          <div nz-col [nzSpan]="24">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="7">执行人</nz-form-label>
+              <nz-form-control [nzSpan]="12">
+                <nz-checkbox-group formControlName="musers"></nz-checkbox-group>
+                <nz-form-explain *ngIf="taskForm.get('musers').dirty && taskForm.get('musers').errors">请选择执行人
+                </nz-form-explain>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+
+        <button class="right" [disabled]="!taskId" nz-button nzType="primary" (click)="goBind()">绑定素材</button>
+        <button [disabled]="taskId" style="margin-right: 10px;" class="right" nzType="primary" nz-button (click)="taskSub()">
+          提交
+        </button>
+
+
+      </form>
+
+    </nz-tab>
+    <nz-tab nzTitle="绑定素材">
+      <ng-container *ngTemplateOutlet="xtupload"></ng-container>
+
+
+    </nz-tab>
+
+  </nz-tabset>
+
+
+</nz-modal>
+
+
+<nz-modal nzWidth="950" [nzStyle]="{ top: '20px',right:'20px' }" [(nzVisible)]="addVisible" [nzFooter]="modalFooter" [nzTitle]="null"
+  (nzOnCancel)="addCancel()">
+  <ng-template #modalFooter>
+    <button nz-button nzType="primary" (click)="addCancel()">关闭</button>
+    <!-- <button nz-button nzType="primary" (click)="resetForm()">重置</button> -->
+  </ng-template>
+
+  <nz-tabset>
+    <nz-tab nzTitle="选题">
+      <ng-container *ngTemplateOutlet="xtform"></ng-container>
+
+    </nz-tab>
+    <nz-tab nzTitle="上传选题素材">
+      <ng-container *ngTemplateOutlet="xtupload"></ng-container>
+
+    </nz-tab>
+
+  </nz-tabset>
+
+
+
+
+</nz-modal>
+
+
+
+
+<nz-table (nzPageIndexChange)="getData()" [nzFrontPagination]="false" [nzTotal]="total" [(nzPageIndex)]="pageIndex" #nzTable
+  [nzData]="all" [nzScroll]="{ x: '2200px' } ">
+  <thead>
+    <tr>
+      <th nzWidth="50px " nzLeft="0px " nzShowCheckbox [(nzChecked)]="allChecked" [nzIndeterminate]="indeterminate" (nzCheckedChange)="checkAll($event)"></th>
+      <th nzWidth="100px " nzLeft="50px ">
+        <div class="itemtab">选题标题</div>
+      </th>
+      <th nzWidth="100px ">
+        <div class="itemtab">摘要</div>
+      </th>
+      <th nzWidth="100px ">
+        <div class="itemtab">内容</div>
+      </th>
+      <th nzWidth="100px ">
+        <div class="itemtab">关键词</div>
+      </th>
+      <th nzWidth="100px ">
+        <div class="itemtab">选题编号</div>
+      </th>
+      <th nzWidth="100px ">
+        <div class="itemtab">地址</div>
+      </th>
+      <th nzWidth="100px ">
+        <div class="itemtab">创建者名称</div>
+      </th>
+      <th nzWidth="100px ">
+        <div class="itemtab">创建时间</div>
+      </th>
+
+      <th nzWidth="100px ">
+        <div class="itemtab">预指派</div>
+      </th>
+      <!-- <th nzWidth="100px ">
+        <div class="itemtab">是否采访</div>
+      </th> -->
+      <th nzWidth="100px ">
+        <div class="itemtab">主要人物</div>
+      </th>
+
+
+      <th nzWidth="100px ">
+        <div class="itemtab">拟播栏目</div>
+      </th>
+
+
+
+
+
+      <th nzWidth="100px ">
+        <div class="itemtab">重要程度</div>
+      </th>
+
+      <th nzWidth="100px ">
+        <div class="itemtab">外链</div>
+      </th>
+      <th nzWidth="100px ">
+        <div class="itemtab">审核员名称</div>
+      </th>
+      <th nzWidth="100px ">
+        <div class="itemtab">发生日期</div>
+      </th>
+      <th nzWidth="100px ">
+        <div class="itemtab">是否公开</div>
+      </th>
+      <th nzWidth="100px ">
+        <div class="itemtab">拟播时间</div>
+      </th>
+      <th nzWidth="100px ">
+        <div class="itemtab">审核状态</div>
+      </th>
+      <th nzWidth="100px ">
+        <div class="itemtab">选题类型</div>
+      </th>
+      <th nzWidth="100px ">
+        <div class="itemtab">修改时间</div>
+      </th>
+      <th nzWidth="300px" nzRight="0px">
+        <div class="itemtab">操作</div>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let data of nzTable.data ">
+      <td nzLeft="0px " nzShowCheckbox [(nzChecked)]="data.checked" (nzCheckedChange)="refreshStatus($event)"></td>
+      <td nzLeft="50px ">
+        <div class="item">{{data.recordTitle}}</div>
+      </td>
+      <td>
+        <div class="item">{{data.recordAbstracts}}</div>
+      </td>
+      <td>
+        <div class="item">{{data.recordContent}}</div>
+      </td>
+      <td>
+        <div class="item">{{data.recordKeys}}</div>
+      </td>
+      <td>
+        <div class="item">{{data.recordId}}</div>
+      </td>
+
+      <td>
+        <div class="item">{{data.recordAddress}}</div>
+      </td>
+
+      <td>
+        <div class="item">{{data?.cUser?.name}}</div>
+      </td>
+      <td>
+        <div class="item">{{data.recordCtime | date:'yyyy-MM-dd HH:mm:ss'}}</div>
+      </td>
+
+
+      <td>
+        <div class="item">{{data.recordPreassignment|preAssignment}}</div>
+      </td>
+      <!-- <td>
+        <div class="item">{{data.recordIsinterview|isInterview}}</div>
+      </td> -->
+      <td>
+        <div class="item">{{data.recordDominatingfigure}}</div>
+      </td>
+
+
+      <td>
+        <div class="item">{{data?.channel?.channelName}}</div>
+      </td>
+
+
+
+
+
+      <td>
+        <div class="item">{{data.recordImportance|importance}}</div>
+      </td>
+
+
+      <td>
+        <div class="item">{{data.recordLink}}</div>
+      </td>
+      <td>
+        <div class="item">{{data?.mUser?.name}}</div>
+      </td>
+      <td>
+        <div class="item">{{data.recordOccurtime | date:'yyyy-MM-dd'}}</div>
+      </td>
+      <td>
+        <div class="item">{{data.recordOpen|open}}</div>
+      </td>
+      <td>
+        <div class="item">{{data.recordPlaytime | date:'yyyy-MM-dd HH:mm:ss'}}</div>
+      </td>
+
+      <td>
+        <div class="item">{{data.recordStatus|status}}</div>
+      </td>
+
+      <td>
+        <div class="item">{{data?.recType?.typeName}}</div>
+      </td>
+      <td>
+        <div class="item">{{data.recordUtime | date:'yyyy-MM-dd HH:mm:ss'}}</div>
+      </td>
+      <td nzRight="0px ">
+        <!-- <a *ngIf="data.recordStatus===1" (click)="getSubmission(data.recordId)">提交审核 <br/></a>
+        <a *ngIf="data.recordStatus===4" (click)="getSubmission(data.recordId)">再次提交 <br/></a>
+        <a *ngIf="data.recordStatus===4||data.recordStatus===1" (click)="edit(data.recordId)">编辑 <br/></a> -->
+
+        <a *ngIf="data.recordStatus===3" (click)="create(data.recordId)">指派任务 <br/></a>
+        <a (click)="read(data.recordId)">详情 <br/></a>
+      </td>
+    </tr>
+  </tbody>
+</nz-table>
+
+<nz-drawer [nzBodyStyle]="{ height: 'calc(100% - 55px)', overflow: 'auto', 'padding-bottom':'53px' }" [nzMaskClosable]="false"
+  [nzWidth]="950" [nzVisible]="detailVisible" nzTitle="详情" (nzOnClose)="readClose()">
+
+  <nz-tabset>
+    <nz-tab nzTitle="选题详情">
+      <ng-container *ngTemplateOutlet="xtform"></ng-container>
+    </nz-tab>
+    <nz-tab nzTitle="素材">
+      <ng-container *ngTemplateOutlet="xtupload"></ng-container>
+    </nz-tab>
+    <nz-tab nzTitle="指派任务">
+      <nz-list [nzDataSource]="tasks" nzBordered [nzRenderItem]="item">
+        <ng-template #item let-item>
+          <nz-list-item>
+            <nz-list-item-meta [nzTitle]="nzTitle" [nzDescription]="people">
+              <ng-template #nzTitle>
+                <a>标题：{{item.taskTitle}}</a>
+              </ng-template>
+              <ng-template #people>
+                <div>
+                  执行人：
+                  <span *ngFor="let p of item.aUsers">
+                    {{p.name}}
+                  </span>
+                </div>
+                <div>时间：{{ item.taskCtime}} </div>
+              </ng-template>
+            </nz-list-item-meta>
+          </nz-list-item>
+        </ng-template>
+      </nz-list>
+    </nz-tab>
+    <nz-tab nzTitle="处理记录">
+      <nz-table #hisTable [nzData]="his">
+        <thead>
+          <tr>
+            <th width="20%">序号</th>
+            <th width="20%">操作内容</th>
+            <th width="20%">操作人</th>
+            <th width="20%">操作时间</th>
+            <th width="20%">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let data of hisTable.data;let i = index">
+            <td>{{i+1}}</td>
+            <td>{{data.historyContent}}</td>
+            <td>{{data.cUser&&data.cUser.name}}</td>
+            <td>
+              {{data.historyTime|date:'yyyy-MM-dd HH:mm:ss'}}
+            </td>
+            <td>
+              <a (click)="caozuo(data.historyExplain)"> {{data.historyExplain&&"查看"}}</a>
+            </td>
+          </tr>
+        </tbody>
+      </nz-table>
+    </nz-tab>
+  </nz-tabset>
+
+</nz-drawer>
+
+<!-- <nz-modal nzWidth="950" [nzStyle]="{ top: '20px',right:'20px' }" [(nzVisible)]="detailVisible" [nzTitle]="null" [nzFooter]="null"
+  (nzOnCancel)="readClose()">
+
+
+
+
+
+</nz-modal> -->
+
+
+
+
+<nz-drawer [nzWidth]="350" [nzClosable]="false" [nzVisible]="mzkVisible" nzPlacement="left" nzTitle="媒资库" (nzOnClose)="mzkClose()">
+  <nz-tabset (nzSelectedIndexChange)="tabchange($event)">
+    <nz-tab nzTitle="查看文件">
+      <nz-spin [nzSpinning]="isSpinning">
+        <div class="floorbox">
+          <span class="floor" *ngFor="let item of mzkFloor; let i = index" (click)="goFloor(item,i)">{{'/'+item.folder_name}}</span>
+        </div>
+        <div class="floorbox">
+          <input class="fileInput" #fileInput type="file" (change)="mzkUpload($event)">
+          <button *ngIf="mzkFile.length>0" nzType="primary" nz-button (click)="getAddTask()">添加</button>
+          <button class="mleft" *ngIf="mzkFloor.length>1" nz-button (click)="fileInput.click()"> 选择本地文件上传</button>
+        </div>
+        <div nz-row nzGutter="16">
+          <div *ngFor="let item of mzkFolder" nz-col class="gutter-row" nzSpan="8">
+            <div [title]="item.folder_name+'('+ item.username+')'" class="gutter-box" (click)="getMzkFolder(item)">
+              <img class="file" src="./assets/folder.png" alt="">
+              <p class="filename">{{item.folder_name+'('+ item.username+')'}}</p>
+            </div>
+          </div>
+
+          <div *ngFor="let item of mzkFile" nz-col class="gutter-row" nzSpan="8">
+            <div [title]="item.filename" class="gutter-box">
+              <img (click)="look(item)" class="file" [src]="fileType(item)" alt="">
+              <label class="filename" nz-checkbox [(ngModel)]="item.checked"> {{item.filename}}</label>
+            </div>
+          </div>
+        </div>
+
+      </nz-spin>
+    </nz-tab>
+    <nz-tab nzTitle="搜索文件">
+      <nz-spin [nzSpinning]="isSpinning">
+
+        <div style="margin-bottom: 10px;">
+          <nz-radio-group [(ngModel)]="radioValue">
+            <label nz-radio-button nzValue="all">全部</label>
+            <label nz-radio-button nzValue="img">图片</label>
+            <label nz-radio-button nzValue="vid">视频</label>
+            <label nz-radio-button nzValue="aud">音频</label>
+            <label nz-radio-button nzValue="doc">文档</label>
+          </nz-radio-group>
+        </div>
+        <div style="margin-bottom: 10px;display: flex;">
+          <nz-input-group nzCompact>
+            <input [(ngModel)]="mzkFileName" style="width: 200px" placeholder="搜索文件" type="text" nz-input>
+            <button (click)="getMzkSearch()" nz-button nzType="primary"><i class="anticon anticon-search"></i></button>
+          </nz-input-group>
+          <button *ngIf="mzkFile.length>0" nzType="primary" nz-button (click)="getAddTask()">添加</button>
+        </div>
+
+
+        <div *ngFor="let item of mzkFile" nz-col class="gutter-row" nzSpan="8">
+          <div [title]="item.filename" class="gutter-box">
+            <img (click)="look(item)" class="file" [src]="fileType(item)" alt="">
+            <label class="filename" nz-checkbox [(ngModel)]="item.checked"> {{item.filename}}</label>
+          </div>
+        </div>
+
+      </nz-spin>
+
+
+    </nz-tab>
+  </nz-tabset>
+</nz-drawer>

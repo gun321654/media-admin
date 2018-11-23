@@ -1,3 +1,4 @@
+
 import { Component, OnInit, ViewChild, ElementRef, TemplateRef } from '@angular/core';
 import { CfService } from '../../../../services/cf.service';
 import { NzMessageService, NzModalService, NzModalRef } from 'ng-zorro-antd';
@@ -5,6 +6,9 @@ import { DatePipe } from '@angular/common';
 
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { XtService } from './../../../../services/xt.service';
+import { MzkService } from './../../../../services/mzk.service';
+import { NgxXml2jsonService } from 'ngx-xml2json';
+
 
 @Component({
   selector: 'app-rwyl',
@@ -29,8 +33,8 @@ export class RwylComponent implements OnInit {
       let starttime = null;
       let endtime = null;
       if (this.searchTime) {
-        starttime = this.datePipe.transform(this.searchTime[0], 'yyyy-MM-dd')
-        endtime = this.datePipe.transform(this.searchTime[1], 'yyyy-MM-dd')
+        starttime = this.datePipe.transform(this.searchTime[0], 'yyyy-MM-dd HH:mm:ss')
+        endtime = this.datePipe.transform(this.searchTime[1], 'yyyy-MM-dd HH:mm:ss')
       }
       this.CfService.getTaskopen(this.pageIndex, this.limit, this.status, starttime, endtime, this.title).subscribe((json) => {
         console.log("data", json);
@@ -63,7 +67,7 @@ export class RwylComponent implements OnInit {
   }
 
   getTaskfinish(data) {
-    this.CfService.getTaskfinish(data.taskId).subscribe(json => {
+    this.CfService.getTaskfinish(data.taskId, "").subscribe(json => {
       if (json.code === 0) {
         data.status = 2;
         this.message.info(json.msg);
@@ -108,7 +112,7 @@ export class RwylComponent implements OnInit {
     this.taskFileEl.nativeElement.dispatchEvent(event);
   }
   taskFileChange(ev: any) {
-      this.taskFile.push(...ev.target.files);ev.target.value = "";
+    this.taskFile.push(...ev.target.files); ev.target.value = "";
   }
 
 
@@ -120,14 +124,17 @@ export class RwylComponent implements OnInit {
   detail: any = {};
   his: Array<any> = [];
   detailClose() {
+    this.imgs = [];
     this.detail = {};
     this.detailVisible = false;
   }
   showDetail(item) {
     console.log(item);
+    this.getMzkImg(item);
     this.CfService.getTaskinfo(item.taskId).subscribe(json => {
       console.log("detail", json);
       if (json.code === 0) {
+        this.getMzkImg(json.result);
         this.detail = json.result;
         this.detailVisible = true;
         this.resources = json.result.resources;
@@ -385,7 +392,7 @@ export class RwylComponent implements OnInit {
   // resourceUrl
 
   resourceUrl: string = ""
-  constructor(private XtService: XtService, private fb: FormBuilder, private modalService: NzModalService, private datePipe: DatePipe, private CfService: CfService, private message: NzMessageService) {
+  constructor(private ngxXml2jsonService: NgxXml2jsonService, private MzkService: MzkService, private XtService: XtService, private fb: FormBuilder, private modalService: NzModalService, private datePipe: DatePipe, private CfService: CfService, private message: NzMessageService) {
     this.form = fb.group({
       taskId: [null, Validators.required],
       recordId: [null, Validators.required],
@@ -401,6 +408,126 @@ export class RwylComponent implements OnInit {
 
 
   }
+
+
+
+
+
+
+
+  getMzkFolder(folder?: any) {
+    folder && this.mzkFloor.push(folder);
+    this.mzkFile = [];
+    this.MzkService.getFolder("getfolders", this.apik, folder.folder_id)
+      .subscribe(json => {
+        console.log("mzkjson", json);
+        //totalassetscount
+        this.mzkFolder = json.DATA.map(item =>
+          (json.COLUMNS.reduce((accumulator, currentValue, index) => ((accumulator[currentValue] = item[index]), accumulator), {}))
+        );
+
+        console.log("文件夹", this.mzkFolder);
+      });
+    folder.folder_id && this.getMzkFile(folder.folder_id);
+  }
+  getMzkFile(folderid?: string) {
+    this.MzkService.getFolder("getassets", this.apik, folderid)
+      .subscribe(json => {
+        console.log("mzkjson", json);
+        this.mzkFile = json.DATA.map(item =>
+          (json.COLUMNS.reduce((accumulator, currentValue, index) => ((accumulator[currentValue] = item[index]), accumulator), { checked: false }))
+        ).filter(item => item.totalassetscount !== 0);
+        console.log("文件", this.mzkFile);
+      });
+  }
+  getAddTask() {
+    this.needFile = this.mzkFile.filter(item => item.checked === true);
+    this.mzkClose();
+  }
+
+  fileType(item) {
+    switch (item.kind) {
+      case "vid": return item.local_url_thumb;
+      case "aud": return "./assets/aud.png";
+      case "img": return item.local_url_thumb;
+      case "doc": return "./assets/doc.png";
+      default: return "./assets/other.png";
+    }
+  }
+
+
+  mzkUpload(ev) {
+    console.log(ev.target.files);
+    (ev.target.files.length > 0) && this.MzkService.getMzkUpload("c.apiupload", this.apik, this.mzkFloor[this.mzkFloor.length - 1].folder_id, ev.target.files[0]).subscribe(text => {
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(text, 'text/xml');
+      const json: any = this.ngxXml2jsonService.xmlToJson(xml);
+      console.log("xml to json", json);
+      if (json.Response.responsecode === "0") {
+        this.message.info("处理成功");
+        this.getMzkFile(this.mzkFloor[this.mzkFloor.length - 1].folder_id);
+      } else {
+        this.message.error(json.Response.message);
+      }
+    });
+  }
+
+  goFloor(folder, i) {
+    this.mzkFloor.splice(i, this.mzkFloor.length);
+    this.getMzkFolder(folder);
+  }
+  mzkLoading: boolean = false;
+  getMzkImg(item) {
+    const data = item.resources.map(item => item.mediaId).toString();
+    data && (this.mzkLoading = true) && this.MzkService.getMzkImg("searchassets", this.apik, data).subscribe(json => {
+      const imgdata = json.DATA.map(item =>
+        (json.COLUMNS.reduce((accumulator, currentValue, index) => ((accumulator[currentValue] = item[index]), accumulator), {}))
+      )
+      console.log("imgdata", imgdata);
+      this.imgs = imgdata;
+      this.mzkLoading = false;
+    });
+    //  ids:(1,2,3,4,5)
+  }
+
+  // getMzkAllImg(data) {
+  //   const length = data.map(item => item.resources.length);
+  //   const 
+  // }
+
+  imgs: Array<any> = [];
+  mzkFile: Array<any> = [];
+  mzkFolder: Array<any> = [];
+  mzkFloor: Array<any> = [];
+  mzkVisible: boolean = false;
+  selectFile: Array<any> = [];
+  needFile: Array<any> = [];
+
+  mzkClose() {
+    this.mzkVisible = false;
+  }
+  mzkOpen() {
+    this.mzkFloor = [];
+    this.getMzkFolder({ folder_name: "全部", folder_id: null });
+    this.mzkVisible = true;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   ngOnInit() {
     this.getChannel();
     this.getUserall();
@@ -410,8 +537,56 @@ export class RwylComponent implements OnInit {
 
     })
     this.getData();
+    this.getApik();
+  }
+
+  apik: string = "";
+  getApik() {
+    this.XtService.getApik().subscribe(json => {
+      console.log("apik", json);
+      this.apik = json.result;
+    })
   }
   pp(data) {
     return data.map(item => (item.name + " ")).toString();
+  }
+  caozuo(content) {
+    this.modalService.create({
+      nzTitle: null,
+      nzContent: content,
+      nzClosable: true,
+      nzFooter: null
+    });
+  }
+
+
+
+  isSpinning: boolean = false;
+  mzkFileName: string = "";
+  radioValue: string = "all";
+  tabchange(e) {
+    console.log("e", e);
+    this.mzkFile = [];
+    this.mzkFloor = [];
+    if (e === 0) {
+      this.getMzkFolder({ folder_name: "全部", folder_id: null });
+    }
+  }
+  getMzkSearch() {
+    this.isSpinning = true;
+    this.mzkFile = [];
+    const mzkFileName = this.mzkFileName === encodeURIComponent(this.mzkFileName) ? this.mzkFileName + "*" : encodeURIComponent(this.mzkFileName);
+    console.log(mzkFileName);
+    this.MzkService.getMzkSearch("searchassets", this.apik, mzkFileName, this.radioValue).subscribe(json => {
+      this.isSpinning = false;
+      if (json.COLUMNS[0] === "id" && json.DATA.length !== 0) {
+        this.mzkFile = json.DATA.map(item =>
+          (json.COLUMNS.reduce((accumulator, currentValue, index) => ((accumulator[currentValue] = item[index]), accumulator), { checked: false }))
+        ).filter(item => item.totalassetscount !== 0);
+      } else {
+        this.message.info("没有该文件");
+      }
+      console.log(json);
+    })
   }
 }

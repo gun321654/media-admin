@@ -33,6 +33,50 @@ export class XtService {
   uploadUrl: string = "/qczl/admin/resource/upload";
 
   taskaddUrl: string = "/qczl/admin/task/add";
+  addRecordUrl: string = "/qczl/admin/resource/addRecord";
+  addtaskUrl: string = "/qczl/admin/resource/addTask";
+  assignlistUrl: string = "/qczl/admin/record/assignlist";
+  apikUrl: string = "/qczl/admin/user/media";
+
+  getApik() {
+    return this.http.get<any>(this.apikUrl);
+  }
+
+
+
+  getAssignlist(page: number, limit: number, search?: string, starttime?: number, endtime?: number, channelid?: number, status?: number) {
+    let params = new HttpParams();
+    params = params.set('page', page.toString());
+    params = params.set('limit', limit.toString());
+    search && (params = params.set('search', search));
+    starttime && (params = params.set('starttime', starttime.toString()));
+    endtime && (params = params.set('endtime', endtime.toString()));
+    channelid && (params = params.set('channelid', channelid.toString()));
+    status && (params = params.set('status', status.toString()));
+    return this.http.get<json>(this.assignlistUrl, { params });
+  }
+
+
+  getAddtask(taskid, mediaids) {
+    let params = new HttpParams();
+    params = params.set('taskid', taskid)
+      .set('mediaids', mediaids);
+    return this.http.post<json>(this.addtaskUrl, params, {
+      headers: new HttpHeaders()
+        .set('Content-Type', 'application/x-www-form-urlencoded')
+    });
+  }
+
+  getAddRecord(taskid, mediaids) {
+    let params = new HttpParams();
+    params = params.set('recordid', taskid)
+      .set('mediaids', mediaids);
+    return this.http.post<json>(this.addRecordUrl, params, {
+      headers: new HttpHeaders()
+        .set('Content-Type', 'application/x-www-form-urlencoded')
+    });
+  }
+
 
 
   getTaskadd(arr, recordId, title, musers, address, content, open, starttime, endtime, channelId, cuser, taskId, xaxis, yaxis) {

@@ -7,3 +7,8 @@
 input[type="text"]:disabled {
     background-color: #ddd;
 }
+
+.ant-form-explain,
+.ant-form-extra {
+    color: #f5222d;
+}

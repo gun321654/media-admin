@@ -1,5 +1,5 @@
 <div class="operate">
-  <button (click)="add()" nz-button nzType="primary" class="add">添加选题</button>
+  <!-- <button (click)="add()" nz-button nzType="primary" class="add">添加选题</button> -->
 
   <nz-input-group nzCompact>
     <button (click)="del()" [disabled]="disabledButton" nz-button nzType="primary">删除选题</button>
@@ -13,21 +13,43 @@
 
 <ng-template #xtupload>
   <div *ngIf="!recordId; else elseBlock">
-    请先添加选题，再上传附件
+    请先添加选题，再上传素材
   </div>
   <ng-template #elseBlock>
-    <input #file class="hidden" multiple="multiple" type="file" (change)="fileChange($event)">
-
-    <button [disabled]="addbtn" class="addinput" (click)="addChange()" nz-button nzType="default">
-      点击添加文件
-    </button>
-
-    <div class="filelist">
-      <nz-tag *ngFor="let item of fileList" [nzColor]="'magenta'" nzMode="closeable" (nzOnClose)="close(item)">{{item.name}}</nz-tag>
+    <div>
+      <div nz-row nzType="flex" nzJustify="start">
+        <div *ngFor="let item of needFile" nz-col [nzSpan]="8" class="card">
+          <nz-card>
+            <div [title]="item.filename" class="img">
+              <img [src]="fileType(item)" alt="">
+            </div>
+            <nz-card-meta [nzTitle]="item.filename"></nz-card-meta>
+          </nz-card>
+        </div>
+      </div>
     </div>
-    <button [disabled]="fileList.length===0" (click)="upload()" nz-button nzType="primary">上传</button>
+
+    <ng-container *ngTemplateOutlet="r"></ng-container>
+
+
+
+
   </ng-template>
 
+</ng-template>
+<ng-template #r>
+
+  <div class="loading" nz-row nzType="flex" nzJustify="start">
+    <nz-spin class="loadingbtn" [nzSpinning]="mzkLoading"> </nz-spin>
+    <div *ngFor="let item of imgs" nz-col [nzSpan]="8" class="card">
+      <nz-card>
+        <div class="img">
+          <img [src]="fileType(item)" alt="">
+        </div>
+        <nz-card-meta [nzTitle]="item.filename"></nz-card-meta>
+      </nz-card>
+    </div>
+  </div>
 </ng-template>
 
 
@@ -200,7 +222,7 @@
           </nz-form-control>
         </nz-form-item>
       </div>
-      <div nz-col [nzSpan]="8">
+      <!-- <div nz-col [nzSpan]="8">
 
         <nz-form-item>
 
@@ -217,7 +239,7 @@
             </nz-form-explain>
           </nz-form-control>
         </nz-form-item>
-      </div>
+      </div> -->
       <div nz-col [nzSpan]="8">
         <nz-form-item>
 
@@ -234,10 +256,10 @@
       <div nz-col [nzSpan]="24">
         <nz-form-item>
 
-          <nz-form-label [nzSpan]="2">指派人</nz-form-label>
+          <nz-form-label [nzSpan]="2">执行人</nz-form-label>
           <nz-form-control [nzSpan]="22">
             <nz-checkbox-group formControlName="assignor"></nz-checkbox-group>
-            <nz-form-explain *ngIf="form.get('assignor').dirty && form.get('assignor').errors">请选择指派人
+            <nz-form-explain *ngIf="form.get('assignor').dirty && form.get('assignor').errors">请选择执行人
             </nz-form-explain>
           </nz-form-control>
         </nz-form-item>
@@ -265,7 +287,7 @@
       </div>
       <div nz-col [nzSpan]="8">
         <nz-form-item>
-          <button [disabled]="addbtn" nz-button type="submit" nzType="primary">保存</button>
+          <button [nzLoading]="btnloading" [disabled]="addbtn" nz-button type="submit" nzType="primary">保存</button>
         </nz-form-item>
       </div>
     </div>
@@ -276,7 +298,7 @@
 
 
 <ng-template #tplContent>
-  <textarea [(ngModel)]="examineText" nz-input placeholder="输入过审留言" [nzAutosize]="{ minRows: 2, maxRows: 6 }"></textarea>
+  <textarea [(ngModel)]="examineText" nz-input placeholder="请输入..." [nzAutosize]="{ minRows: 2, maxRows: 6 }"></textarea>
 </ng-template>
 
 <nz-modal nzWidth="950" [nzStyle]="{ top: '20px',right:'20px' }" [(nzVisible)]="taskVisible" nzTitle="指派任务" (nzOnOk)="taskSub()"
@@ -404,12 +426,21 @@
   </ng-template>
 
   <nz-tabset>
-    <nz-tab nzTitle="添加选题">
+    <nz-tab nzTitle="选题">
       <ng-container *ngTemplateOutlet="xtform"></ng-container>
 
     </nz-tab>
-    <nz-tab nzTitle="上传选题附件">
-      <ng-container *ngTemplateOutlet="xtupload"></ng-container>
+    <nz-tab nzTitle="上传选题素材">
+
+
+
+
+
+
+
+
+
+
 
     </nz-tab>
 
@@ -423,11 +454,11 @@
 <nz-input-group nzCompact class="search">
   <input placeholder="标题、关键字、内容搜索" type="text" nz-input [(ngModel)]="searchText" style="width:200px">
   <nz-select style="width: 120px" [(ngModel)]="searchStatus" nzAllowClear nzPlaceHolder="请选择">
-    <nz-option nzValue="1" nzLabel="编辑"></nz-option>
+    <!-- <nz-option nzValue="1" nzLabel="编辑"></nz-option> -->
     <nz-option nzValue="2" nzLabel="待审核"></nz-option>
     <nz-option nzValue="3" nzLabel="审核通过"></nz-option>
     <nz-option nzValue="4" nzLabel="审核未通过"></nz-option>
-    <nz-option nzValue="5" nzLabel="已指派"></nz-option>
+    <!-- <nz-option nzValue="5" nzLabel="已指派"></nz-option> -->
   </nz-select>
   <nz-select style="width: 120px" [(ngModel)]="searchChannelid" nzAllowClear nzPlaceHolder="请选择">
     <nz-option *ngFor="let data of channel" [nzValue]="data.channelId" [nzLabel]="data.channelName"></nz-option>
@@ -470,9 +501,9 @@
       <th nzWidth="100px ">
         <div class="itemtab">预指派</div>
       </th>
-      <th nzWidth="100px ">
+      <!-- <th nzWidth="100px ">
         <div class="itemtab">是否采访</div>
-      </th>
+      </th> -->
       <th nzWidth="100px ">
         <div class="itemtab">主要人物</div>
       </th>
@@ -514,7 +545,9 @@
       <th nzWidth="100px ">
         <div class="itemtab">修改时间</div>
       </th>
-      <th nzWidth="120px " nzRight="0px ">操作</th>
+      <th nzWidth="300px" nzRight="0px">
+        <div class="itemtab">操作</div>
+      </th>
     </tr>
   </thead>
   <tbody>
@@ -544,16 +577,16 @@
         <div class="item">{{data?.cUser?.name}}</div>
       </td>
       <td>
-        <div class="item">{{data.recordCtime | date:'yyyy-MM-dd'}}</div>
+        <div class="item">{{data.recordCtime | date:'yyyy-MM-dd HH:mm:ss'}}</div>
       </td>
 
 
       <td>
         <div class="item">{{data.recordPreassignment|preAssignment}}</div>
       </td>
-      <td>
+      <!-- <td>
         <div class="item">{{data.recordIsinterview|isInterview}}</div>
-      </td>
+      </td> -->
       <td>
         <div class="item">{{data.recordDominatingfigure}}</div>
       </td>
@@ -585,7 +618,7 @@
         <div class="item">{{data.recordOpen|open}}</div>
       </td>
       <td>
-        <div class="item">{{data.recordPlaytime | date:'yyyy-MM-dd'}}</div>
+        <div class="item">{{data.recordPlaytime | date:'yyyy-MM-dd HH:mm:ss'}}</div>
       </td>
 
       <td>
@@ -596,29 +629,27 @@
         <div class="item">{{data?.recType?.typeName}}</div>
       </td>
       <td>
-        <div class="item">{{data.recordUtime | date:'yyyy-MM-dd'}}</div>
+        <div class="item">{{data.recordUtime | date:'yyyy-MM-dd HH:mm:ss'}}</div>
       </td>
       <td nzRight="0px ">
         <a *ngIf="data.recordStatus===1" (click)="getSubmission(data.recordId)">提交审核 <br/></a>
-        <a *ngIf="data.recordStatus===4" (click)="getSubmission(data.recordId)">再次提交 <br/></a>
-        <a *ngIf="data.recordStatus===3" (click)="create(data.recordId)">指派任务 <br/></a>
-        <!-- <a *ngIf="data.recordStatus===4||data.recordStatus===1" (click)="edit(data.recordId)">编辑 <br/></a> -->
+        <!-- <a *ngIf="data.recordStatus===4" (click)="getSubmission(data.recordId)">再次提交 <br/></a> -->
+        <!-- <a *ngIf="data.recordStatus===3" (click)="create(data.recordId)">指派任务 <br/></a>
+        <a *ngIf="data.recordStatus===4||data.recordStatus===1" (click)="edit(data.recordId)">编辑 <br/></a> -->
         <a (click)="read(data.recordId)">详情 <br/></a>
       </td>
     </tr>
   </tbody>
 </nz-table>
 
-
-
-<nz-modal nzWidth="950" [nzStyle]="{ top: '20px',right:'20px' }" [(nzVisible)]="detailVisible" [nzTitle]="null" [nzFooter]="null"
-  (nzOnCancel)="readClose()">
+<nz-drawer [nzBodyStyle]="{ height: 'calc(100% - 55px)', overflow: 'auto', 'padding-bottom':'53px' }" [nzMaskClosable]="false"
+  [nzWidth]="950" [nzVisible]="detailVisible" nzTitle="详情" (nzOnClose)="readClose()">
 
   <nz-tabset>
-    <nz-tab nzTitle="添加选题">
+    <nz-tab nzTitle="选题详情">
       <ng-container *ngTemplateOutlet="xtform"></ng-container>
     </nz-tab>
-    <nz-tab nzTitle="附件">
+    <nz-tab nzTitle="素材">
       <ng-container *ngTemplateOutlet="xtupload"></ng-container>
     </nz-tab>
     <nz-tab nzTitle="指派任务">
@@ -630,10 +661,13 @@
                 <a>标题：{{item.taskTitle}}</a>
               </ng-template>
               <ng-template #people>
-                执行人：
-                <span *ngFor="let p of item.aUsers">
-                  {{p.name}}
-                </span>
+                <div>
+                  执行人：
+                  <span *ngFor="let p of item.aUsers">
+                    {{p.name}}
+                  </span>
+                </div>
+                <div>时间：{{ item.taskCtime}} </div>
               </ng-template>
             </nz-list-item-meta>
           </nz-list-item>
@@ -644,19 +678,23 @@
       <nz-table #hisTable [nzData]="his">
         <thead>
           <tr>
-            <th width="25%">序号</th>
-            <th width="25%">操作内容</th>
-            <th width="25%">操作人</th>
-            <th width="25%">操作时间</th>
+            <th width="20%">序号</th>
+            <th width="20%">操作内容</th>
+            <th width="20%">操作人</th>
+            <th width="20%">操作时间</th>
+            <th width="20%">操作</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let data of hisTable.data">
-            <td>{{data.historyId}}</td>
-            <td>{{data.historyExplain}}</td>
-            <td>{{data?.cUser?.name}}</td>
+          <tr *ngFor="let data of hisTable.data;let i = index">
+            <td>{{i+1}}</td>
+            <td>{{data.historyContent}}</td>
+            <td>{{data.cUser&&data.cUser.name}}</td>
             <td>
               {{data.historyTime|date:'yyyy-MM-dd HH:mm:ss'}}
+            </td>
+            <td>
+              <a (click)="caozuo(data.historyExplain)"> {{data.historyExplain&&"查看"}}</a>
             </td>
           </tr>
         </tbody>
@@ -664,6 +702,13 @@
     </nz-tab>
   </nz-tabset>
 
+</nz-drawer>
+
+<!-- <nz-modal nzWidth="950" [nzStyle]="{ top: '20px',right:'20px' }" [(nzVisible)]="detailVisible" [nzTitle]="null" [nzFooter]="null"
+  (nzOnCancel)="readClose()">
 
 
-</nz-modal>
+
+
+
+</nz-modal> -->

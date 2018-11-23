@@ -21,10 +21,14 @@
     "@angular/platform-browser-dynamic": "^6.0.2",
     "@angular/router": "^6.0.2",
     "core-js": "^2.5.4",
+    "flv.js": "^1.4.2",
     "moment": "^2.22.2",
     "ng-zorro-antd": "^1.4.1",
     "ngx-cookie": "^4.0.2",
+    "ngx-xml2json": "^1.0.2",
     "rxjs": "^6.0.0",
+    "stream": "^0.0.2",
+    "timers": "^0.1.1",
     "zone.js": "^0.8.26"
   },
   "devDependencies": {
@@ -35,6 +39,7 @@
     "@types/jasmine": "~2.8.6",
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "~8.9.4",
+    "@types/xml2js": "^0.4.3",
     "codelyzer": "~4.2.1",
     "jasmine-core": "~2.99.1",
     "jasmine-spec-reporter": "~4.2.1",

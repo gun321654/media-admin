@@ -5,7 +5,8 @@ import { DatePipe } from '@angular/common';
 
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { XtService } from './../../../../services/xt.service';
-
+import { MzkService } from './../../../../services/mzk.service';
+import { NgxXml2jsonService } from 'ngx-xml2json';
 @Component({
   selector: 'app-wcjd',
   templateUrl: './wcjd.component.html',
@@ -29,8 +30,8 @@ export class WcjdComponent implements OnInit {
       let starttime = null;
       let endtime = null;
       if (this.searchTime) {
-        starttime = this.datePipe.transform(this.searchTime[0], 'yyyy-MM-dd')
-        endtime = this.datePipe.transform(this.searchTime[1], 'yyyy-MM-dd')
+        starttime = this.datePipe.transform(this.searchTime[0], 'yyyy-MM-dd HH:mm:ss')
+        endtime = this.datePipe.transform(this.searchTime[1], 'yyyy-MM-dd HH:mm:ss')
       }
       this.CfService.getTaskgetestablish(this.pageIndex, this.limit, this.status, starttime, endtime, this.title).subscribe((json) => {
         console.log("data", json);
@@ -53,7 +54,7 @@ export class WcjdComponent implements OnInit {
 
     this.modalService.create({
       nzTitle: '提示',
-      nzContent: "是否删除",
+      nzContent: "确认要删除吗",
       nzClosable: false,
       nzOnOk: () => this.CfService.getDel(item.taskId).subscribe(json => {
         if (json.code === 0) {
@@ -79,7 +80,7 @@ export class WcjdComponent implements OnInit {
   }
 
   getTaskfinish(data) {
-    this.CfService.getTaskfinish(data.taskId).subscribe(json => {
+    this.CfService.getTaskfinish(data.taskId, "").subscribe(json => {
       if (json.code === 0) {
         data.status = 2;
         this.message.info(json.msg);
@@ -124,7 +125,7 @@ export class WcjdComponent implements OnInit {
     this.taskFileEl.nativeElement.dispatchEvent(event);
   }
   taskFileChange(ev: any) {
-      this.taskFile.push(...ev.target.files);ev.target.value = "";
+    this.taskFile.push(...ev.target.files); ev.target.value = "";
   }
 
 
@@ -136,14 +137,18 @@ export class WcjdComponent implements OnInit {
   detail: any = {};
   his: Array<any> = [];
   detailClose() {
+    this.imgs = [];
     this.detail = {};
     this.detailVisible = false;
   }
   showDetail(item) {
     console.log(item);
+    this.getMzkImg(item);
+
     this.CfService.getTaskinfo(item.taskId).subscribe(json => {
       console.log("detail", json);
       if (json.code === 0) {
+        this.getMzkImg(json.result);
         this.detail = json.result;
         this.detailVisible = true;
         this.resources = json.result.resources;
@@ -182,7 +187,19 @@ export class WcjdComponent implements OnInit {
       })
     }
   }
-
+  getAddtask() {
+    const mediaids = this.needFile.map(item => item.id).toString();
+    mediaids && this.XtService.getAddtask(this.taskId, mediaids).subscribe(json => {
+      if (json.code === 0) {
+        this.mzkFile = this.mzkFile.map(item => (item.checked = false, item));
+        this.message.info(json.msg);
+        this.needFile = [];
+        this.getData();
+      } else {
+        this.message.error(json.msg);
+      }
+    });
+  }
 
 
   @ViewChild("examine") private examine: TemplateRef<{}>;
@@ -247,6 +264,7 @@ export class WcjdComponent implements OnInit {
       console.log("提交编辑", json);
       if (json.code === 0) {
         this.editClose();
+        this.getData();
         this.message.info(json.msg);
       } else {
         this.message.error(json.msg);
@@ -256,6 +274,7 @@ export class WcjdComponent implements OnInit {
   }
   editClose() {
     this.editVisible = false;
+    this.taskId = null;
     this.form.reset();
   }
   userList: Array<any> = [];
@@ -282,6 +301,7 @@ export class WcjdComponent implements OnInit {
 
 
   editTask(item) {
+    this.taskId = item.taskId;
     this.CfService.getTaskinfo(item.taskId).subscribe(json => {
       console.log("detail", json);
       if (json.code === 0) {
@@ -400,8 +420,8 @@ export class WcjdComponent implements OnInit {
 
   // resourceUrl
 
-  resourceUrl: string = ""
-  constructor(private XtService: XtService, private fb: FormBuilder, private modalService: NzModalService, private datePipe: DatePipe, private CfService: CfService, private message: NzMessageService) {
+  resourceUrl: string = "";
+  constructor(private ngxXml2jsonService: NgxXml2jsonService, private MzkService: MzkService, private XtService: XtService, private fb: FormBuilder, private modalService: NzModalService, private datePipe: DatePipe, private CfService: CfService, private message: NzMessageService) {
     this.form = fb.group({
       taskId: [null, Validators.required],
       recordId: [null, Validators.required],
@@ -417,6 +437,125 @@ export class WcjdComponent implements OnInit {
 
 
   }
+
+
+
+
+
+
+  getMzkFolder(folder?: any) {
+    folder && this.mzkFloor.push(folder);
+    this.mzkFile = [];
+    this.MzkService.getFolder("getfolders", this.apik, folder.folder_id)
+      .subscribe(json => {
+        console.log("mzkjson", json);
+        //totalassetscount
+        this.mzkFolder = json.DATA.map(item =>
+          (json.COLUMNS.reduce((accumulator, currentValue, index) => ((accumulator[currentValue] = item[index]), accumulator), {}))
+        );
+
+        console.log("文件夹", this.mzkFolder);
+      });
+    folder.folder_id && this.getMzkFile(folder.folder_id);
+  }
+  getMzkFile(folderid?: string) {
+    this.MzkService.getFolder("getassets", this.apik, folderid)
+      .subscribe(json => {
+        console.log("mzkjson", json);
+        this.mzkFile = json.DATA.map(item =>
+          (json.COLUMNS.reduce((accumulator, currentValue, index) => ((accumulator[currentValue] = item[index]), accumulator), { checked: false }))
+        ).filter(item => item.totalassetscount !== 0);
+        console.log("文件", this.mzkFile);
+      });
+  }
+  getAddTask() {
+    this.needFile = this.mzkFile.filter(item => item.checked === true).map(item => (item.checked = false, item));
+    this.mzkClose();
+  }
+
+  fileType(item) {
+    switch (item.kind) {
+      case "vid": return item.local_url_thumb;
+      case "aud": return "./assets/aud.png";
+      case "img": return item.local_url_thumb;
+      case "doc": return "./assets/doc.png";
+      default: return "./assets/other.png";
+    }
+  }
+
+
+  mzkUpload(ev) {
+    console.log(ev.target.files);
+    (ev.target.files.length > 0) && this.MzkService.getMzkUpload("c.apiupload", this.apik, this.mzkFloor[this.mzkFloor.length - 1].folder_id, ev.target.files[0]).subscribe(text => {
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(text, 'text/xml');
+      const json: any = this.ngxXml2jsonService.xmlToJson(xml);
+      console.log("xml to json", json);
+      if (json.Response.responsecode === "0") {
+        this.message.info("处理成功");
+        this.getMzkFile(this.mzkFloor[this.mzkFloor.length - 1].folder_id);
+      } else {
+        this.message.error(json.Response.message);
+      }
+    });
+  }
+
+  goFloor(folder, i) {
+    this.mzkFloor.splice(i, this.mzkFloor.length);
+    this.getMzkFolder(folder);
+  }
+  mzkLoading: boolean = false;
+  getMzkImg(item) {
+    const data = item.resources.map(item => item.mediaId).toString();
+    data && (this.mzkLoading = true) && this.MzkService.getMzkImg("searchassets", this.apik, data).subscribe(json => {
+      const imgdata = json.DATA.map(item =>
+        (json.COLUMNS.reduce((accumulator, currentValue, index) => ((accumulator[currentValue] = item[index]), accumulator), { checked: false }))
+      )
+      console.log("imgdata", imgdata);
+      this.imgs = imgdata;
+      this.mzkLoading = false;
+    });
+    //  ids:(1,2,3,4,5)
+  }
+
+  // getMzkAllImg(data) {
+  //   const length = data.map(item => item.resources.length);
+  //   const 
+  // }
+
+  imgs: Array<any> = [];
+  mzkFile: Array<any> = [];
+  mzkFolder: Array<any> = [];
+  mzkFloor: Array<any> = [];
+  mzkVisible: boolean = false;
+  selectFile: Array<any> = [];
+  needFile: Array<any> = [];
+
+  mzkClose() {
+    this.mzkVisible = false;
+  }
+  mzkOpen() {
+    this.mzkFloor = [];
+    this.getMzkFolder({ folder_name: "全部", folder_id: null });
+    this.mzkVisible = true;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   ngOnInit() {
     this.getChannel();
     this.getUserall();
@@ -426,8 +565,98 @@ export class WcjdComponent implements OnInit {
 
     })
     this.getData();
+    this.getApik();
+  }
+
+  apik: string = "";
+  getApik() {
+    this.XtService.getApik().subscribe(json => {
+      console.log("apik", json);
+      this.apik = json.result;
+    })
   }
   pp(data) {
     return data.map(item => (item.name + " ")).toString();
+  }
+
+  msg(item) {
+    this.CfService.getMsg(item.taskId).subscribe(json => {
+      if (json.code === 0) {
+        this.message.info("通知已发送");
+      } else {
+        this.message.info("通知已发送");
+      }
+    })
+  }
+
+  caozuo(content) {
+    this.modalService.create({
+      nzTitle: null,
+      nzContent: content,
+      nzClosable: true,
+      nzFooter: null
+    });
+  }
+
+
+  previewData: any;
+  @ViewChild("preview") private preview: TemplateRef<{}>;
+  look(data) {
+    this.previewData = data;
+    this.modalService.create({
+      nzTitle: null,
+      nzContent: this.preview,
+      nzClosable: true,
+      nzFooter: null,
+      nzOnCancel: () => (this.previewData = null)
+    });
+  }
+
+
+
+  isSpinning: boolean = false;
+  removeFile() {
+    this.needFile = this.needFile.filter(item => item.checked === false);
+    const file2 = this.imgs.filter(item => item.checked === true).map(item => item.id).toString();
+    file2 && this.MzkService.getDelTaskmz(this.taskId, file2).subscribe(json => {
+      console.log(json);
+      if (json.code === 0) {
+        this.getData();
+        this.imgs = this.imgs.filter(item => item.checked === false);
+        this.message.info(json.msg);
+      } else {
+        this.message.error(json.msg);
+      }
+    });
+  }
+
+
+
+  mzkFileName: string = "";
+  radioValue: string = "all";
+  tabchange(e) {
+    console.log("e", e);
+    this.mzkFile = [];
+    this.mzkFloor = [];
+    if (e === 0) {
+      this.getMzkFolder({ folder_name: "全部", folder_id: null });
+    }
+  }
+  getMzkSearch() {
+    this.isSpinning = true;
+    this.mzkFile = [];
+    const mzkFileName = this.mzkFileName === encodeURIComponent(this.mzkFileName) ? this.mzkFileName + "*" : encodeURIComponent(this.mzkFileName);
+    console.log(mzkFileName);
+    this.MzkService.getMzkSearch("searchassets", this.apik, mzkFileName, this.radioValue).subscribe(json => {
+      this.isSpinning = false;
+      if (json.COLUMNS[0] === "id" && json.DATA.length !== 0) {
+        this.mzkFile = json.DATA.map(item =>
+          (json.COLUMNS.reduce((accumulator, currentValue, index) => ((accumulator[currentValue] = item[index]), accumulator), { checked: false }))
+        ).filter(item => item.totalassetscount !== 0);
+      } else {
+        this.message.info("没有该文件");
+      }
+      console.log(json);
+    })
   }
 }

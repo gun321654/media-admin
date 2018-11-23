@@ -1,11 +1,11 @@
 <nz-input-group nzCompact class="search">
   <input placeholder="输入标题搜索" type="text" nz-input [(ngModel)]="title" style="width:200px">
   <nz-select style="width: 120px" [(ngModel)]="status" nzAllowClear nzPlaceHolder="请选择">
-      <nz-option nzValue="0" nzLabel="未完成"></nz-option>
-      <nz-option nzValue="1" nzLabel="未认领"></nz-option>
-      <nz-option nzValue="2" nzLabel="待确认"></nz-option>
-      <nz-option nzValue="3" nzLabel="已完结"></nz-option>
-      <nz-option nzValue="4" nzLabel="驳回"></nz-option>
+    <!-- <nz-option nzValue="0" nzLabel="未开始"></nz-option> -->
+    <nz-option nzValue="1" nzLabel="进行中"></nz-option>
+    <nz-option nzValue="2" nzLabel="待确认"></nz-option>
+    <nz-option nzValue="3" nzLabel="已完结"></nz-option>
+    <nz-option nzValue="4" nzLabel="驳回"></nz-option>
   </nz-select>
   <nz-range-picker [(ngModel)]="searchTime" nzShowTime></nz-range-picker>
   <button (click)="searchReset()" nz-button nzType="primary">重置</button>
@@ -13,7 +13,7 @@
 </nz-input-group>
 
 <div class="page">
-  <nz-pagination (nzPageIndexChange)="getData()" [(nzPageIndex)]="pageIndex" [nzTotal]="total"></nz-pagination>
+  <nz-pagination nzPageSize="6" (nzPageIndexChange)="getData()" [(nzPageIndex)]="pageIndex" [nzTotal]="total"></nz-pagination>
 </div>
 
 <div nz-row [nzGutter]="8">
@@ -51,30 +51,53 @@
 
   <nz-modal (nzOnCancel)="hide()" [(nzVisible)]="resourcesShow" [nzTitle]="null" [nzFooter]="null">
 
-    <textarea class="blank" [(ngModel)]="taskText" nz-input placeholder="输入留言" [nzAutosize]="{ minRows: 2, maxRows: 6 }"></textarea>
+    <textarea class="blank" [(ngModel)]="taskText" nz-input placeholder="请输入..." [nzAutosize]="{ minRows: 2, maxRows: 6 }"></textarea>
     <nz-alert *ngIf="error" [nzType]="'error'" [nzMessage]="error" [nzShowIcon]="true" class="mb-lg"></nz-alert>
     <div>
-      <input #taskfile class="hidden" multiple="multiple" type="file" (change)="taskFileChange($event)">
+      <!-- <input #taskfile class="hidden" multiple="multiple" type="file" (change)="taskFileChange($event)">
       <button class="addinput blank" (click)="addTaskChange()" nz-button nzType="default">
         点击添加文件
-      </button>
+      </button> -->
       <div class="filelist blank">
         <nz-tag *ngFor="let item of taskFile" [nzColor]="'magenta'" nzMode="closeable" (nzOnClose)="closeTaskfile(item)">{{item.name}}</nz-tag>
       </div>
     </div>
-    <button class="blank" nz-button nzType="primary" (click)="getTaskexeaute()">提交</button>
+
+    <div>
+      <div nz-row nzType="flex" nzJustify="start">
+        <div *ngFor="let item of needFile" nz-col [nzSpan]="8" class="card">
+          <nz-card>
+            <div [title]="item.filename" class="img">
+              <img (click)="look(item)" [src]="fileType(item)" alt="">
+            </div>
+
+            <label class="filename" nz-checkbox [(ngModel)]="item.checked"> {{item.filename}}</label>
+
+          </nz-card>
+        </div>
+      </div>
+    </div>
+
+    <div class="marr">
+      <button class="blank" nz-button nzType="primary" (click)="getTaskexeaute()">提交</button>
+      <button nz-button (click)="mzkOpen()" class="mleft">从媒资库选取</button>
+      <button nz-button (click)="removeFile()" class="mleft">从列表中移除</button>
+    </div>
+
     <ng-container *ngTemplateOutlet="r"></ng-container>
   </nz-modal>
 </div>
+
 <ng-template #r>
 
-  <div nz-row nzType="flex" nzJustify="start">
-    <div *ngFor="let item of resources" nz-col [nzSpan]="8" class="card">
+  <div class="loading" nz-row nzType="flex" nzJustify="start">
+    <nz-spin class="loadingbtn" [nzSpinning]="mzkLoading"> </nz-spin>
+    <div *ngFor="let item of imgs" nz-col [nzSpan]="8" class="card">
       <nz-card>
         <div class="img">
-          <img [src]="resourceUrl+item.resourceUrl" alt="">
+          <img (click)="look(item)" [src]="fileType(item)" alt="">
         </div>
-        <nz-card-meta [nzTitle]="item.resourceName" [nzDescription]="item.resourceTime|date:'yyyy-MM-dd HH:mm:ss'"></nz-card-meta>
+        <label class="filename" nz-checkbox [(ngModel)]="item.checked"> {{item.filename}}</label>
       </nz-card>
     </div>
   </div>
@@ -102,17 +125,18 @@
 
   </div>
 </nz-modal>
-
-<nz-modal nzWidth="950" [nzStyle]="{ top: '20px',right:'20px' }" [(nzVisible)]="detailVisible" [nzTitle]="null" [nzFooter]="null"
-  (nzOnCancel)="detailClose()">
+<nz-drawer [nzBodyStyle]="{ height: 'calc(100% - 55px)', overflow: 'auto', 'padding-bottom':'53px' }" [nzMaskClosable]="false"
+  [nzWidth]="850" [nzVisible]="detailVisible" nzTitle="详情" (nzOnClose)="detailClose()">
   <nz-tabset>
     <nz-tab nzTitle="任务详情">
       <h1>{{detail.taskTitle}}</h1>
-      <p>创建人：{{detail.cUser&&detail.cUser.name}}</p>
-      <p>指派人：
+      <p>指派人：{{detail.cUser&&detail.cUser.name}}</p>
+      <p>执行人：
         <span *ngFor="let auser of detail.aUsers">{{auser.name}} </span>
       </p>
       <p>内容：{{detail.taskContent}}</p>
+      <p>地点：{{detail.taskAddress}}</p>
+
       <p>创建时间：{{detail.taskCtime|date:'yyyy-MM-dd HH:mm:ss'}}</p>
       <p>开始时间：{{detail.taskStarttime|date:'yyyy-MM-dd HH:mm:ss'}}</p>
       <p>结束时间：{{detail.taskEndtime|date:'yyyy-MM-dd HH:mm:ss'}}</p>
@@ -127,7 +151,7 @@
 
 
     </nz-tab>
-    <nz-tab nzTitle="附件">
+    <nz-tab nzTitle="素材">
       <ng-container *ngTemplateOutlet="r"></ng-container>
     </nz-tab>
     <nz-tab nzTitle="对应选题">
@@ -150,19 +174,24 @@
       <nz-table #hisTable [nzData]="his">
         <thead>
           <tr>
-            <th width="25%">序号</th>
-            <th width="25%">操作内容</th>
-            <th width="25%">操作人</th>
-            <th width="25%">操作时间</th>
+            <th width="20%">序号</th>
+            <th width="20%">操作内容</th>
+            <th width="20%">操作人</th>
+            <th width="20%">操作时间</th>
+            <th width="20%">操作</th>
+
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let data of hisTable.data">
-            <td>{{data.historyId}}</td>
-            <td>{{data.historyExplain}}</td>
+          <tr *ngFor="let data of hisTable.data;let i = index">
+            <td>{{i+1}}</td>
+            <td>{{data.historyContent}}</td>
             <td>{{data.cUser&&data.cUser.name}}</td>
             <td>
               {{data.historyTime|date:'yyyy-MM-dd HH:mm:ss'}}
+            </td>
+            <td>
+              <a (click)="caozuo(data.historyExplain)"> {{data.historyExplain&&"查看"}}</a>
             </td>
           </tr>
         </tbody>
@@ -171,8 +200,15 @@
 
   </nz-tabset>
 
+</nz-drawer>
 
-</nz-modal>
+
+<!-- <nz-modal nzWidth="950" [nzStyle]="{ top: '20px',right:'20px' }" [(nzVisible)]="detailVisible" [nzTitle]="null" [nzFooter]="null"
+  (nzOnCancel)="detailClose()">
+
+
+
+</nz-modal> -->
 
 <ng-template #examine>
   <textarea [(ngModel)]="examineText" nz-input placeholder="输入留言" [nzAutosize]="{ minRows: 2, maxRows: 6 }"></textarea>
@@ -298,6 +334,89 @@
 
     </div>
   </form>
+</ng-template>
 
 
+
+
+<nz-drawer [nzWidth]="350" [nzClosable]="false" [nzVisible]="mzkVisible" nzPlacement="left" nzTitle="媒资库" (nzOnClose)="mzkClose()">
+
+  <nz-tabset (nzSelectedIndexChange)="tabchange($event)">
+    <nz-tab nzTitle="查看文件">
+      <nz-spin [nzSpinning]="isSpinning">
+        <div class="floorbox">
+          <span class="floor" *ngFor="let item of mzkFloor; let i = index" (click)="goFloor(item,i)">{{'/'+item.folder_name}}</span>
+        </div>
+        <div class="floorbox">
+          <input class="fileInput" #fileInput type="file" (change)="mzkUpload($event)">
+          <button *ngIf="mzkFile.length>0" nzType="primary" nz-button (click)="getAddTask()">添加</button>
+          <button class="mleft" *ngIf="mzkFloor.length>1" nz-button (click)="fileInput.click()"> 选择本地文件上传</button>
+        </div>
+        <div nz-row nzGutter="16">
+          <div *ngFor="let item of mzkFolder" nz-col class="gutter-row" nzSpan="8">
+            <div [title]="item.folder_name+'('+ item.username+')'" class="gutter-box" (click)="getMzkFolder(item)">
+              <img class="file" src="./assets/folder.png" alt="">
+              <p class="filename">{{item.folder_name+'('+ item.username+')'}}</p>
+            </div>
+          </div>
+
+          <div *ngFor="let item of mzkFile" nz-col class="gutter-row" nzSpan="8">
+            <div [title]="item.filename" class="gutter-box">
+              <img (click)="look(item)" class="file" [src]="fileType(item)" alt="">
+              <label class="filename" nz-checkbox [(ngModel)]="item.checked"> {{item.filename}}</label>
+            </div>
+          </div>
+        </div>
+
+      </nz-spin>
+    </nz-tab>
+    <nz-tab nzTitle="搜索文件">
+      <nz-spin [nzSpinning]="isSpinning">
+        <div style="margin-bottom: 10px;">
+          <nz-radio-group [(ngModel)]="radioValue">
+            <label nz-radio-button nzValue="all">全部</label>
+            <label nz-radio-button nzValue="img">图片</label>
+            <label nz-radio-button nzValue="vid">视频</label>
+            <label nz-radio-button nzValue="aud">音频</label>
+            <label nz-radio-button nzValue="doc">文档</label>
+          </nz-radio-group>
+        </div>
+
+        <div style="margin-bottom: 10px;display: flex;">
+          <nz-input-group nzCompact>
+            <input [(ngModel)]="mzkFileName" style="width: 200px" placeholder="搜索文件" type="text" nz-input>
+            <button (click)="getMzkSearch()" nz-button nzType="primary"><i class="anticon anticon-search"></i></button>
+          </nz-input-group>
+          <button *ngIf="mzkFile.length>0" nzType="primary" nz-button (click)="getAddTask()">添加</button>
+        </div>
+
+
+        <div *ngFor="let item of mzkFile" nz-col class="gutter-row" nzSpan="8">
+          <div [title]="item.filename" class="gutter-box">
+            <img (click)="look(item)" class="file" [src]="fileType(item)" alt="">
+            <label class="filename" nz-checkbox [(ngModel)]="item.checked"> {{item.filename}}</label>
+          </div>
+        </div>
+
+      </nz-spin>
+
+
+    </nz-tab>
+  </nz-tabset>
+
+
+</nz-drawer>
+
+
+
+<ng-template #preview>
+  <img class="auto " *ngIf="previewData?.kind==='img' " [src]="previewData?.local_url_org " alt=" ">
+  <video class="auto " controls *ngIf="previewData?.kind==='vid' " [src]="previewData?.local_url_org "></video>
+  <audio class="auto " controls *ngIf="previewData?.kind==='aud' " [src]="previewData?.local_url_org "></audio>
+  <div *ngIf="previewData?.kind==='doc' ">该文件无法在网页中预览</div>
+</ng-template>
+
+
+<ng-template #tplContent>
+  <textarea [(ngModel)]="finishText " nz-input placeholder="请输入... " [nzAutosize]="{ minRows: 5, maxRows: 8 } "></textarea>
 </ng-template>

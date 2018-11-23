@@ -40,6 +40,30 @@ export class CfService {
 
   taskgetfinishUrl = "/qczl/admin/task/getfinish";  //未完结任务
   taskgetendUrl = "/qczl/admin/task/getend";
+  openUrl = "/qczl/admin/task/open";
+  apikUrl: string = "/qczl/admin/user/media";
+  msgUrl: string = "/qczl/admin/task/smsnotify";
+  getMsg(taskId) {
+    const params = new HttpParams()
+      .set("taskId", taskId.toString());
+    return this.http.post<json>(this.msgUrl, params, {
+      headers: new HttpHeaders()
+        .set('Content-Type', 'application/x-www-form-urlencoded')
+    });
+  }
+  getApik() {
+    return this.http.get<any>(this.apikUrl);
+  }
+  getOpen(page: number, limit: number, status?: string, starttime?: number, endtime?: number, title?: string) {
+    let params = new HttpParams();
+    params = params.set('page', page.toString());
+    params = params.set('limit', limit.toString());
+    status && (params = params.set('status', status.toString()));
+    starttime && (params = params.set('starttime', starttime.toString()));
+    endtime && (params = params.set('endtime', endtime.toString()));
+    title && (params = params.set('title', title));
+    return this.http.get<json>(this.openUrl, { params });
+  }
 
   getTaskgetend(page: number, limit: number, status?: string, starttime?: number, endtime?: number, title?: string) {
     let params = new HttpParams();
@@ -141,13 +165,14 @@ export class CfService {
     return this.http.get<json>(this.taskinfoUrl, { params });
   }
 
-  getTaskexeaute(arr, taskid, explain) {
+  getTaskexeaute(taskid, explain, mediaids) {
     let formdata = new FormData();
-    arr.forEach(item => {
-      formdata.append(item.name, item);
-    });
+    // arr.forEach(item => {
+    //   formdata.append(item.name, item);
+    // });
     formdata.append("taskid", taskid);
     formdata.append("explain", explain);
+    formdata.append("mediaids", mediaids);
 
     return this.http.post<json>(this.taskexecuteUrl, formdata);
   }
@@ -159,9 +184,10 @@ export class CfService {
         .set('Content-Type', 'application/x-www-form-urlencoded')
     });
   }
-  getTaskfinish(taskid) {
+  getTaskfinish(taskid, explain) {
     const params = new HttpParams()
       .set('taskid', taskid)
+      .set('explain', explain)
     return this.http.post<json>(this.taskfinishUrl, params, {
       headers: new HttpHeaders()
         .set('Content-Type', 'application/x-www-form-urlencoded')

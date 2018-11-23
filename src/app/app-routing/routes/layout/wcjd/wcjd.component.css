@@ -82,3 +82,53 @@
 
     /* position: absolute; */
 }
+
+
+
+
+.file {
+    width: 58.66px;
+    height: 64.73px;
+    display: block;
+    margin: 0 auto;
+}
+
+.filename {
+    height: 42px;
+    width: 100%;
+    overflow: hidden;
+    text-align: center;
+}
+
+.floor {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.floorbox {
+    margin-bottom: 15px;
+}
+
+.fileInput {
+    display: none;
+}
+
+.mleft {
+    margin-left: 10px;
+}
+
+.loading {
+    min-height: 30px;
+    width: 100%;
+    text-align: center;
+}
+
+.loadingbtn {
+    width: 100%;
+}
+
+.auto {
+    margin: 0 auto;
+    display: block;
+    width: 100%;
+}
